@@ -1,0 +1,34 @@
+{
+  "name": "video-understanding-mcp",
+  "description": "AWS Bedrock 기반 비디오 이해 및 검색 MCP 서버. 비디오 임베딩, 자연어 검색, 자막 생성, 클립 추출 기능 제공.",
+  "version": "0.1.0",
+  "author": "Your Name",
+  "license": "MIT",
+  "homepage": "https://github.com/yourusername/video-understanding-mcp-standard",
+  "categories": ["video", "search", "aws", "bedrock"],
+  "config": {
+    "env": {
+      "AWS_REGION": {
+        "description": "AWS 리전",
+        "default": "us-east-1",
+        "required": false
+      },
+      "S3_VECTORS_BUCKET": {
+        "description": "S3 Vectors 버킷 이름",
+        "required": true
+      },
+      "S3_VECTORS_INDEX": {
+        "description": "S3 Vectors 인덱스 이름",
+        "required": true
+      },
+      "DYNAMODB_TABLE": {
+        "description": "DynamoDB 테이블 이름",
+        "required": true
+      },
+      "S3_UPLOAD_BUCKET": {
+        "description": "로컬 파일 업로드용 S3 버킷 (bucket/prefix 형식)",
+        "required": false
+      }
+    }
+  }
+}
