@@ -5,7 +5,7 @@ AWS 서비스 기반 비디오 이해 및 검색 MCP 서버입니다. 비디오�
 ## 주요 기능
 
 - 🎥 **비디오 분석**: 영상 내용 임베딩 및 요약 생성
-- 🔍 **장면 검색**: 자연어로 특정 장면 찾기
+- 🔍 **장면 검색 및 트랜스코딩**: 자연어로 특정 장면 찾기 및 파일 트랜스코딩
 - 📝 **자막 처리**: 자동 자막 생성 및 키워드 추출
 - 🎯 **정확한 타임스탬프**: 원하는 장면의 정확한 재생 시점 제공
 
@@ -17,16 +17,6 @@ AWS 서비스 기반 비디오 이해 및 검색 MCP 서버입니다. 비디오�
 ```bash
 python3 --version  # Python 3.8 이상 필요
 ```
-
-#### AWS CLI 설치 및 설정
-```bash
-# AWS CLI 설치 (macOS)
-brew install awscli
-
-# AWS CLI 설치 (Linux)
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
 
 # AWS 자격증명 설정
 aws configure
@@ -41,37 +31,28 @@ aws configure
 아래 명령어를 순서대로 실행하여 필요한 AWS 리소스를 생성합니다.
 
 #### S3 Vectors 버킷 및 인덱스 생성
-```bash
-# 버킷 이름 설정 (원하는 이름으로 변경)
-BUCKET_NAME="my-video-vectors-$(date +%s)"
 
 # S3 Vectors 버킷 생성
-aws s3vectors create-vector-bucket --bucket-name $BUCKET_NAME
+aws s3vectors create-vector-bucket --bucket-name 나의버킷
 
-# 벡터 인덱스 생성 (1024차원, cosine 유사도)
+#### 벡터 인덱스 생성 
 aws s3vectors create-index \
-  --bucket-name $BUCKET_NAME \
-  --index-name video-index \
+  --bucket-name 나의버킷 \
+  --index-name 나의인덱스 \
   --vector-dimension 1024 \
   --distance-metric cosine
 
-echo "✅ S3 Vectors 버킷 생성 완료: $BUCKET_NAME"
-```
 
 #### DynamoDB 테이블 생성
-```bash
-# 테이블 이름 설정
-TABLE_NAME="video-processing-tasks"
 
-# DynamoDB 테이블 생성
 aws dynamodb create-table \
-  --table-name $TABLE_NAME \
+  --table-name 나의테이블 \
   --attribute-definitions AttributeName=task_id,AttributeType=S \
   --key-schema AttributeName=task_id,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST
 
-echo "✅ DynamoDB 테이블 생성 완료: $TABLE_NAME"
-```
+#### S3 버킷 생성
+영상 업로드를 위한 S3버킷 생성
 
 ### 3단계: 서버 설치
 
@@ -89,35 +70,26 @@ pip install -e .
 
 `~/.kiro/settings/mcp.json` 파일을 생성하거나 수정합니다:
 
-```json
-{
-  "mcpServers": {
-    "video-processing": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/절대/경로/video-understanding-mcp", / 실제 경로로 변경필요 local 경로
-        "run",
-        "video-mcp-server"
-      ],
+```
+   "video-processing": {
+      "command": "video-mcp-server",
       "env": {
-        "AWS_REGION": "us-east-1",
-        "AWS_PROFILE": "default",
-        "S3_VECTORS_BUCKET": "위에서-생성한-버킷-이름",
-        "S3_VECTORS_INDEX": "video-index",
-        "DYNAMODB_TABLE": "video-processing-tasks"
-      }
-    }
-  }
-}
+        "AWS_REGION": "us-east-1", # 특정 모델 사용을 위해 지정
+        "AWS_PROFILE": "나의프로필",
+        "S3_VECTORS_BUCKET": "twl-marengo-3",
+        "S3_VECTORS_INDEX": "나의인덱스",
+        "DYNAMODB_TABLE": "나의테이블",
+        "S3_UPLOAD_BUCKET": "로컬 영상을 업로드할 버킷"
+      },
+   }
 ```
 
-**중요**: `/절대/경로/video-understanding-mcp`를 실제 프로젝트 경로로 변경하세요.
 
-### 5단계: 서버 실행 확인
+
+### 5단계: 서버 실행 확인 (Kiro예시)
 
 ```bash
-# Kiro CLI 시작
+# Kiro CLI 예시
 kiro-cli 
 
 ## 사용 예시
@@ -127,26 +99,12 @@ kiro-cli
 
 Kiro CLI에서:
 ```
-영상 분석해줘: s3://my-bucket/videos/my-video.mp4
-```
-
-### 특정 장면 검색하기
+디렉토리에 해당하는 영상 임베딩해줘.
 
 ```
-골 장면 찾아줘
-선수가 넘어지는 장면 찾아줘
-심판이 카드를 꺼내는 순간 찾아줘
+골 장면 찾아줘.
+타임스탬프 제공해줘.
+주요 키워드 파일로 저장해줘.
 ```
-
-### 자막 생성 및 조회
-
-```
-자막 생성해줘: s3://my-bucket/videos/my-video.mp4
-자막에서 "골" 키워드 찾아줘
-```
-
-### MCP 서버 연결 안 됨
-- `~/.kiro/settings/mcp.json`의 경로가 절대 경로인지 확인
-- Kiro CLI를 완전히 종료 후 재시작
 
 

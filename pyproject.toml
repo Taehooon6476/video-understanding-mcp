@@ -18,4 +18,4 @@ dependencies = [
 video-mcp-server = "video_mcp.server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/video_mcp"]
+packages = ["src"]
